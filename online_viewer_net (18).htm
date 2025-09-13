@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MadEgg EX</title> 
+    <link rel="icon" href="https://notmadeggoffical.github.io/madeggai/assets/images/icons/madegglogo.webp" type="image/x-icon"> 
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: "Segoe UI", sans-serif;
+            background: var(--bg-gradient, linear-gradient(-45deg,#1e1e2f,#2d2d44,#1a1a26,#29293d));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-color,#fff);
+            overflow: hidden;
+        }
+
+        :root {
+            --accent: #ff0000; /* Changed default accent to red */
+            --text-color: #fff;
+            --card-bg: rgba(255,255,255,0.08);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .top-bar input, .top-bar select {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-color);
+        }
+
+        .top-bar input::placeholder {
+            color: #bbb;
+        }
+
+
+        .top-bar select {
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
+
+        .top-bar select::-ms-expand {
+            display: none;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+            gap: 25px;
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100vh - 70px);
+            transition: .3s;
+        }
+
+        .list-view .image-container {
+            display: flex;
+            align-items: center;
+            text-align: left;
+        }
+
+        .list-view .image {
+            width: 120px;
+            margin-right: 15px;
+        }
+
+        .image-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform .3s, box-shadow .3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .image-container:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5), 0 0 15px var(--accent);
+        }
+
+        .image {
+            width: 100%;
+            border-radius: 15px;
+            margin-bottom: 10px;
+        }
+
+        .text {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Fullscreen */
+        #fullscreen-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: black;
+            display: none;
+            z-index: 100;
+        }
+
+        #embed-content {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .control-button {
+            position: absolute;
+            top: 15px;
+            padding: 10px 18px;
+            font-size: 14px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            transition: .3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-button:hover {
+            background: var(--accent);
+        }
+
+        #fullscreen-button {
+            right: 20px;
+        }
+
+        #device-fullscreen-button {
+            left: 20px;
+        }
+
+        /* Settings Button */
+        #settings-button {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            font-size: 22px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 20;
+            transition: .3s;
+        }
+
+        #settings-button:hover {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        /* Settings Panel */
+        #settings-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 300px;
+            height: 100%;
+            background: rgba(30,30,40,0.95);
+            backdrop-filter: blur(15px);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            padding: 30px;
+            transition: .5s;
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        #settings-panel.open {
+            right: 0;
+        }
+
+        #settings-panel h3 {
+            margin-bottom: 15px;
+            font-size: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
+        }
+
+        #settings-panel input,
+        #settings-panel select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 15px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        #settings-panel button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--accent);
+            color: white;
+            font-size: 14px;
+        }
+
+        /* Discord */
+        #discord-widget {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 350px;
+            height: 400px;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <input type="text" id="searchInput" placeholder="Search games...">
+        <select id="filterSelect">
+            <option value="all">All Categories</option>
+            <option value="shooter">Shooter</option>
+            <option value="arcade">Arcade</option>
+            <option value="multiplayer">Multiplayer</option>
+            <option value="sports">Sports</option>
+            <option value="simulation">Simulation</option>
+            <option value="creative">Creative</option>
+            <option value="platform">Platformer</option>
+            <option value="car">Car Games</option>
+            <option value="other">Other</option>
+
+        </select>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="image-container" data-category="shooter" onclick="openFullscreen('https://yolk.today?scrlcbp=.')">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZC4BP7qXw0oJNesL8bsnUpe_WzonGy1EBAg&s" class="image">
+            <div class="text">Shell Shockers</div>
+        </div>
+         <div class="image-container" data-category="shooter" onclick="openFullscreen('https://badegg.io')">
+            <img src="https://imgs.crazygames.com/bad-egg_1x1/20250319155951/bad-egg_1x1-cover?format=auto&quality=100&metadata=none&width=1200" class="image">
+            <div class="text">Bad Egg</div>
+                    </div>
+                     <div class="image-container" data-category="car" onclick="openFullscreen('https://smashkarts.io')">
+            <img src="https://freegames.io/files/images/512_smash.jpg" class="image">
+            <div class="text">Smash Karts</div>
+                    </div>
+
+        
+        <div class="image-container" data-category="shooter" onclick="openFullscreen('https://1v1.lol?scrlcbp=.')">
+            <img src="https://1v1lol.org/wp-content/uploads/2024/03/1v1lol-1.jpg" class="image">
+            <div class="text">1v1.lol</div>
+        </div>
+        <div class="image-container" data-category="shooter" onclick="openFullscreen('https://inkboym.github.io/inkboymmath/funnyshooter.html')">
+            <img src="https://m.media-amazon.com/images/I/41+GCaM3dcL.png" class="image">
+            <div class="text">Funny Shooter</div>
+        </div>
+        <div class="image-container" data-category="shooter" onclick="openFullscreen('https://ev.io/')">
+            <img src="https://nft.ev.io/images/bones.png" class="image">
+            <div class="text">ev.io</div>
+        </div>
+
+        <div class="image-container" data-category="arcade" onclick="openFullscreen('https://icedodo.onionfist.com?scrlcbp=.')">
+            <img src="https://art.pixilart.com/sr2cb7995e694aws3.png" class="image">
+            <div class="text">Ice Dodo</div>
+        </div>
+        <div class="image-container" data-category="shooter" onclick="openFullscreen('https://kour.io?scrlcbp=.')">
+            <img src="https://imgs.crazygames.com/kour-io_1x1/20241107024956/kour-io_1x1-cover?format=auto&quality=100&metadata=none&width=1200" class="image">
+            <div class="text">Kour</div>
+        </div>
+        <div class="image-container" data-category="other" onclick="openFullscreen('https://paperio.site?scrlcbp=.')">
+            <img src="https://www.levelwinner.com/wp-content/uploads/2018/09/paper-io-2-voodoo-400x400.jpg" class="image">
+            <div class="text">Paper.io 2</div>
+        </div>
+        <div class="image-container" data-category="other" onclick="openFullscreen('https://subwaysurfersgame.io/subway-surfers-game.embed?id=20241122?scrlcbp=.')">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfyjATFe7Qg15j5x1YktUbABxgr6BlbKXKECbj6KH2QzbgKqzw" class="image">
+            <div class="text">Subway Surf</div>
+        </div>
+        <div class="image-container" data-category="other" onclick="openFullscreen('https://sloperun.github.io?scrlcbp=.')">
+            <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhXsBJufcrMN_WWt8Z8HRdWfMEyj_RDPYhulx6MLsCOyWiTim_1Zg1kqcqlhJijBzQh8uANli3wZJ9IrIbZI8NkCOjPAaC4Uovpi_N_FIN372vlHMztaqlXpMPhNkuM3XbmC_-Xrbj1eoW3BO3Cy2qtaDOK_9qTNH0yKf2XIZGM55jsHokkIySkqtuAwfUe/s320/Slope.jpg" class="image">
+            <div class="text">Slope Run</div>
+        </div>
+        <div class="image-container" data-category="car" onclick="openFullscreen('https://slowroads.io?scrlcbp=.')">
+            <img src="https://crusherclicker.com/wp-content/uploads/2024/09/Slow-Roads.jpg" class="image">
+            <div class="text">Slow Roads</div>
+        </div>
+        <div class="image-container" data-category="arcade" onclick="openFullscreen('https://itch.io/embed-upload/235259?color=333333')">
+            <img src="https://assets1.ignimgs.com/2018/01/23/celeste---button-1516746065043.jpg?width=300&crop=1%3A1%2Csmart&auto=webp" class="image">
+            <div class="text">Celeste Classic</div>
+        </div>
+        <div class="image-container" data-category="other" onclick="openFullscreen('https://hexanaut.io/')">
+            <img src="https://www.onlinegames.io/media/posts/394/Hexanaut-io.jpg" class="image">
+            <div class="text">Hexanaut</div>
+        </div>
+        <div class="image-container" data-category="other" onclick="openFullscreen('https://html-classic.itch.zone/html/2876359-1257470/index.html')">
+            <img src="https://play-lh.googleusercontent.com/eH7CbOlUv_4ysRxicJbncfdfK3nsA_YtIpu8cvPRi2rRvXAQOLwXhoNybAwHptYIpbY=w480-h960-rw" class="image">
+            <div class="text">FNF</div>
+        </div>
+
+        <div class="image-container" data-category="multiplayer" onclick="openFullscreen('https://skribbl.io?scrlcbp=.')">
+            <img src="https://imgmedia.lbb.in/media/2020/05/5eb9149cdda0dc33a2fde6bc_1589187740390.jpg" class="image">
+            <div class="text">Skribbl.io</div>
+        </div>
+        <div class="image-container" data-category="multiplayer" onclick="openFullscreen('https://amongusplay.online?scrlcbp=.')">
+            <img src="https://images.wikia.com/among-us-wiki/images/b/bc/Wiki.png" class="image">
+            <div class="text">Among Us</div>
+        </div>
+
+        <div class="image-container" data-category="sports" onclick="openFullscreen('https://ubg98.github.io/BasketRandom?scrlcbp=.')">
+            <img src="https://img.tapimg.net/market/images/f99680b007df287119a67a7b670f2998.jpg" class="image">
+            <div class="text">Basketball Random</div>
+        </div>
+        <div class="image-container" data-category="sports" onclick="openFullscreen('https://game316009.konggames.com/gamez/0031/6009/live/index.html')">
+            <img src="https://upload.wikimedia.org/wikipedia/en/b/bf/Retro_Bowl_cover.png" class="image">
+            <div class="text">Retro Bowl</div>
+        </div>
+
+        <div class="image-container" data-category="simulation" onclick="openFullscreen('https://lifesimulator.online/game/bitlife?scrlcbp=.')">
+            <img src="https://static.tvtropes.org/pmwiki/pub/images/unnamed_480.png" class="image">
+            <div class="text">Bitlife</div>
+        </div>
+        <div class="image-container" data-category="simulation" onclick="openFullscreen('https://play.gamepix.com/fishing-online/embed?sid=4EASE')">
+            <img src="https://play-lh.googleusercontent.com/qhb9QXwKuiSDooVlAsKb15Kyrposh0GJMTtv0vVKaSurC13ipI0dIUdR0zLDRn5n6w" class="image">
+            <div class="text">Fishing Simulator</div>
+        </div>
+        <div class="image-container" data-category="arcade" onclick="openFullscreen('https://madegg4ever.teleporthq.app/drive')">
+            <img src="https://m.media-amazon.com/images/I/41jI6lhFBXS.jpg" class="image">
+            <div class="text">DS</div>
+        </div>
+
+        <div class="image-container" data-category="creative" onclick="openFullscreen('https://inkboym.github.io/inkboymmath/minicraft.html?scrlcbp=.')">
+            <img src="https://preview.redd.it/i-made-a-3d-version-of-the-new-minecraft-logo-v0-j7zui59ihaeb1.png?width=640&crop=smart&auto=webp&s=4ee7fb5d4245c98ded7cad388aba4b47f32d7c54" class="image">
+            <div class="text">Minecraft 1.8.9</div>
+        </div>
+    </div>
+
+    <button id="settings-button" onclick="toggleSettings()">⚙️</button>
+
+    <div id="settings-panel">
+        <h3>Settings</h3>
+        <label>Tab Cloaker:</label>
+        <input type="text" id="game-title" placeholder="Enter fake tab title">
+        <label>Theme:</label>
+        <select id="themeSelect">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+        </select>
+        <label>Accent Color:</label>
+        <input type="color" id="accentColor" value="#ff0000">
+        <label>Layout:</label>
+        <select id="layoutSelect">
+            <option value="grid">Grid</option>
+            <option value="list">List</option>
+        </select>
+        <button onclick="saveSettings()">Save</button>
+        <button onclick="closeSettings()">Close</button>
+    </div>
+
+    <div id="fullscreen-container">
+        <embed id="embed-content" src="about:blank"></embed>
+        <button id="fullscreen-button" class="control-button" onclick="closeFullscreen()">Home</button>
+        <button id="device-fullscreen-button" class="control-button" onclick="enterDeviceFullscreen()">⛶</button>
+    </div>
+
+    <div id="discord-widget">
+        <script src='https://dcdn.jsdelivr.net/npm/@widgetbot/crate@3' async defer>
+            new Crate({ server:'1332569305203740733', channel:'1332930524917923902' })
+        </script>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const fullscreenContainer = document.getElementById('fullscreen-container');
+            const embed = document.getElementById('embed-content');
+            const savedState = localStorage.getItem('fullscreenState');
+
+            if (savedState === 'open') {
+                const savedGameUrl = localStorage.getItem('gameUrl');
+                embed.src = savedGameUrl;
+                fullscreenContainer.style.display = 'block';
+                document.getElementById('discord-widget').style.display = 'none';
+            }
+
+            loadSettings();
+        });
+
+        function openFullscreen(gameUrl) {
+            const fullscreenContainer = document.getElementById('fullscreen-container');
+            const embed = document.getElementById('embed-content');
+            embed.src = gameUrl;
+            fullscreenContainer.style.display = 'block';
+            localStorage.setItem('fullscreenState', 'open');
+            localStorage.setItem('gameUrl', gameUrl);
+            document.getElementById('discord-widget').style.display = 'none';
+        }
+
+        function closeFullscreen() {
+            const fullscreenContainer = document.getElementById('fullscreen-container');
+            const embed = document.getElementById('embed-content');
+            embed.src = 'about:blank';
+            fullscreenContainer.style.display = 'none';
+            localStorage.setItem('fullscreenState', 'closed');
+            localStorage.removeItem('gameUrl');
+            document.getElementById('discord-widget').style.display = 'block';
+        }
+
+        function enterDeviceFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen();
+            else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen();
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', function () {
+            const filter = this.value.toLowerCase();
+            document.querySelectorAll('.image-container').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('filterSelect').addEventListener('change', function () {
+            const filter = this.value;
+            document.querySelectorAll('.image-container').forEach(item => {
+                item.style.display = (filter === 'all' || item.getAttribute('data-category') === filter) ? '' : 'none';
+            });
+        });
+
+        function toggleSettings() {
+            document.getElementById('settings-panel').classList.toggle('open');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-panel').classList.remove('open');
+        }
+
+        function saveSettings() {
+            const title = document.getElementById('game-title').value;
+            const theme = document.getElementById('themeSelect').value;
+            const accent = document.getElementById('accentColor').value;
+            const layout = document.getElementById('layoutSelect').value;
+
+            if (title) document.title = title;
+
+            if (theme === 'light') {
+                document.documentElement.style.setProperty('--bg-gradient', 'linear-gradient(-45deg,#f0f0f0,#e0e0e0,#d0d0d0,#c0c0c0)');
+                document.documentElement.style.setProperty('--text-color', '#000');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(0,0,0,0.1)');
+            } else {
+                document.documentElement.style.setProperty('--bg-gradient', 'linear-gradient(-45deg,#1e1e2f,#2d2d44,#1a1a26,#29293d)');
+                document.documentElement.style.setProperty('--text-color', '#fff');
+                document.documentElement.style.setProperty('--card-bg', 'rgba(255,255,255,0.08)');
+            }
+
+            document.documentElement.style.setProperty('--accent', accent);
+
+            const container = document.getElementById('gameContainer');
+            if (layout === 'list') {
+                container.classList.add('list-view');
+            } else {
+                container.classList.remove('list-view');
+            }
+
+            localStorage.setItem('settings', JSON.stringify({ title, theme, accent, layout }));
+        }
+
+        function loadSettings() {
+            const saved = JSON.parse(localStorage.getItem('settings') || '{}');
+            if (saved.title) document.title = saved.title;
+            if (saved.theme) document.getElementById('themeSelect').value = saved.theme;
+            if (saved.accent) document.getElementById('accentColor').value = saved.accent;
+            if (saved.layout) document.getElementById('layoutSelect').value = saved.layout;
+            if (Object.keys(saved).length) {
+                saveSettings();
+            }
+        }
+    </script>
+</body>
+</html>
